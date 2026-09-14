@@ -1,0 +1,3 @@
+# Large dataset / serialized files
+*.zst
+*.pkl
