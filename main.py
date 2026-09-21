@@ -17,6 +17,8 @@ from emotion_embedder import EmotionEmbedderr
 from semantic_embedder import SemanticEmbedder
 from processed_comment import ProcessedComment
 from user import User
+from bubble import BubbleNode
+from simulation_engine import SimulationEngine
 
 CACHE_FILE = "cached_processed_comments.pkl"
 
@@ -137,3 +139,30 @@ noise_count = int(np.sum(labels == -1))
 print("Clustering completed.")
 print(f"Dynamic clusters found: {num_clusters}")
 print(f"Users classified as noise (-1): {noise_count} / {len(labels)}")
+
+processed_clusters = []
+active_bubble_nodes = dict()
+for user, label in zip(users_for_initial_clustering, labels):
+    if label == -1:
+        continue  # Skip noise users
+    if label not in processed_clusters:
+        processed_clusters.append(label)
+        node = BubbleNode(
+            node_id=label,
+            topic_vector=user.aggregate_semantic_vector,
+            emotion_hist=user.aggregate_emotion_vector
+        )
+        node.add_new_user(user)   
+        active_bubble_nodes[label] = node
+
+    else:
+        active_bubble_nodes[label].add_new_user(user)
+
+
+    ######################################SIMULATION START######################################
+
+    SimEngine = SimulationEngine(
+        bubble_nodes=list(active_bubble_nodes.values()),
+        chronological_comments=remaining_comments)
+
+    SimEngine.run_simulation()
