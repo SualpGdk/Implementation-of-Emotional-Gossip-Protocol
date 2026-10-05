@@ -13,6 +13,13 @@ class TransitionEdge:
         self.emotionWeightingCoefficient : float = emotionWeightingCoefficient
         self.historical_memory_factor : float = 0.9  # Default value, can be adjusted based on application needs
 
+        self.source_node_last_advertised_entropy : float = 0.0
+        self.target_node_last_advertised_entropy : float = 0.0
+
+        # ADDED: (topic_vector, emotion_vector, entropy) as last advertised by each side
+        self.source_snapshot = None
+        self.target_snapshot = None
+
     def recalculate_affinity(self, source_topic_vector: np.ndarray, target_topic_vector: np.ndarray, source_emotion_vector: np.ndarray, target_emotion_vector: np.ndarray):
         """
         Recalculates the semantic affinity between the source and target nodes based on their topic vectors.
@@ -43,3 +50,57 @@ class TransitionEdge:
 
     def update_weight(self, source_entropy : float, target_entropy : float):
         self.weight = self.historical_memory_factor * self.weight + (1 - self.historical_memory_factor) * (self.affinity_score * (1 - abs(source_entropy - target_entropy) / max(source_entropy, target_entropy, 1e-6)))
+
+    def post_entropy(self, node_id : str, entropy : float):
+        if node_id == self.source_node_id:
+            self.source_node_last_advertised_entropy = entropy
+        elif node_id == self.target_node_id:
+            self.target_node_last_advertised_entropy = entropy
+        else:
+            raise ValueError(f"Node ID {node_id} does not match either source or target node IDs.")
+
+    def get_opposing_side_entropy(self, node_id : str) -> float:
+        if node_id == self.source_node_id:
+            return self.target_node_last_advertised_entropy
+        elif node_id == self.target_node_id:
+            return self.source_node_last_advertised_entropy
+        else:
+            raise ValueError(f"Node ID {node_id} does not match either source or target node IDs.")
+
+    # ------------------------------------------------------------------
+    # ADDED: everything below is new (snapshot sharing, refresh, migration traffic)
+    # ------------------------------------------------------------------
+    def post_snapshot(self, node_id: int, topic: np.ndarray, emotion: np.ndarray, entropy: float):
+        """Advertise this node's (v_topic, v_emotion, entropy) to the other side. Supersedes post_entropy."""
+        snap = (np.array(topic, dtype=np.float32), np.array(emotion, dtype=np.float32), float(entropy))
+        if node_id == self.source_node_id:
+            self.source_snapshot = snap
+            self.source_node_last_advertised_entropy = float(entropy)
+        elif node_id == self.target_node_id:
+            self.target_snapshot = snap
+            self.target_node_last_advertised_entropy = float(entropy)
+        else:
+            raise ValueError(f"Node ID {node_id} does not match either source or target node IDs.")
+
+    def get_opposing_snapshot(self, node_id: int):
+        """Snapshot of the side that is NOT node_id (pass the caller's own id), or None if not posted yet."""
+        if node_id == self.source_node_id:
+            return self.target_snapshot
+        elif node_id == self.target_node_id:
+            return self.source_snapshot
+        raise ValueError(f"Node ID {node_id} does not match either source or target node IDs.")
+
+    def refresh(self):
+        """Recompute A_ij, emotional delta and W_ij from both posted snapshots. Call once per step per edge."""
+        if self.source_snapshot is None or self.target_snapshot is None:
+            return
+        s_topic, s_emo, s_h = self.source_snapshot
+        t_topic, t_emo, t_h = self.target_snapshot
+        self.recalculate_affinity(s_topic, t_topic, s_emo, t_emo)
+        self.update_emotional_delta(s_emo, t_emo)
+        self.update_weight(s_h, t_h)
+
+    def record_migration(self, boost: float = 0.02):
+        """Historical traffic: every migration makes this path slightly more fluid."""
+        self.migration_count += 1
+        self.weight = min(1.0, self.weight + boost)

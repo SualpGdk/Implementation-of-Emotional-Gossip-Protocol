@@ -1,0 +1,16 @@
+"filename", "language", "Python", "Markdown", "comment", "blank", "total"
+"c:\Users\hp\Desktop\src\README.md", "Markdown", 0, 3, 0, 2, 5
+"c:\Users\hp\Desktop\src\TransientGossipToken.py", "Python", 19, 0, 0, 6, 25
+"c:\Users\hp\Desktop\src\TransitionEdge.py", "Python", 18, 0, 21, 6, 45
+"c:\Users\hp\Desktop\src\bubble.py", "Python", 52, 0, 50, 19, 121
+"c:\Users\hp\Desktop\src\comments.py", "Python", 7, 0, 29, 4, 40
+"c:\Users\hp\Desktop\src\emotion_embedder.py", "Python", 40, 0, 67, 16, 123
+"c:\Users\hp\Desktop\src\main.py", "Python", 110, 0, 23, 31, 164
+"c:\Users\hp\Desktop\src\processed_comment.py", "Python", 6, 0, 20, 4, 30
+"c:\Users\hp\Desktop\src\reader.py", "Python", 191, 0, 276, 63, 530
+"c:\Users\hp\Desktop\src\semantic_embedder.py", "Python", 8, 0, 37, 8, 53
+"c:\Users\hp\Desktop\src\simulation_engine.py", "Python", 63, 0, 5, 25, 93
+"c:\Users\hp\Desktop\src\tempCodeRunnerFile.py", "Python", 1, 0, 0, 0, 1
+"c:\Users\hp\Desktop\src\trial.py", "Python", 433, 0, 26, 87, 546
+"c:\Users\hp\Desktop\src\user.py", "Python", 24, 0, 50, 7, 81
+"Total", "-", 972, 3, 604, 278, 1857

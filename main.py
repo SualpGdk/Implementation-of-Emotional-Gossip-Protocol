@@ -18,7 +18,7 @@ from semantic_embedder import SemanticEmbedder
 from processed_comment import ProcessedComment
 from user import User
 from bubble import BubbleNode
-from simulation_engine import SimulationEngine
+from simulation_engine import SimEngine
 
 CACHE_FILE = "cached_processed_comments.pkl"
 
@@ -161,8 +161,9 @@ for user, label in zip(users_for_initial_clustering, labels):
 
     ######################################SIMULATION START######################################
 
-    SimEngine = SimulationEngine(
-        bubble_nodes=list(active_bubble_nodes.values()),
-        chronological_comments=remaining_comments)
+simulation_engine = SimEngine(
+    bubble_nodes=list(active_bubble_nodes.values()),
+    chronological_comments=remaining_comments
+)
 
-    SimEngine.run_simulation()
+simulation_engine.run_simulation()
